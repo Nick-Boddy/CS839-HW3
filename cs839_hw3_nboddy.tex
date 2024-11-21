@@ -4,12 +4,14 @@
 \usepackage{hyperref}
 \usepackage{listings}
 \usepackage{booktabs}
+\usepackage{caption}
+\usepackage{subcaption}
 
 \lstset{basicstyle=\ttfamily, breaklines=true}
 
-\title{CS 839: Foundation Models \\ HW 3: Training Data Extraction and Multi-Modality}
+\title{CS 839: Foundation Models \\ HW 3: Training Data Extraction and Multi-Modal Limitations}
 \author{Nick Boddy}
-\date{2024-11-18}
+\date{2024-11-19}
 
 \begin{document}
 	
@@ -125,9 +127,109 @@ Ultimately, I'd say extracting text from the book was a success. Even though it 
 	This isn't feasible with ChatGPT because of its accessibility; I would need to use an open-source model where I can have more control of its decoding and sampling.
 	
 	\section{Multimodal Model Limitations}
+	Multimodal LLMs like Gemini and ChatGPT can incorporate other modes of input such as images and audio. The question though is how accurately effective can these models reason with such modes? To briefly assess the limitations of their visual reasoning, I've constructed some 3D geometric models using magnetic spheres. I then photographed them with a simple backdrop and a camera angle that's generous in deducing the shape, and ask ChatGPT to analyze the structure and determine how many spheres there are total. The shapes I've constructed for this test aren't very complex - any adult with basic mathematical reasoning can infer how many spheres there are with a simple image.
+	\\
+	
+	For asking the model the visual reasoning question, I ended up on the following prompt, with the image attached.
+	\begin{lstlisting}
+Given the image of some 3D configuration of spheres, analyze it to observe the shape and structure. How many spheres are there in total? Be sure to provide a clear answer.
+	\end{lstlisting}
+	
+	Without the addendum asking for a clear answer, ChatGPT tended to make guesses at the shape, but either not acknowledging the dimensions or suggesting tips for how to count it myself, likely because it itself is not confident to provide an immediate answer.
+	
+	\begin{figure}[h!]
+		\centering
+		\includegraphics[width=150pt]{image1.jpg}
+		\label{fig:image1}
+		\caption{Cube of 256 Spheres}
+	\end{figure}
+	
+	
+	When the image of Figure 1 is provided, ChatGPT recognizes it as a configuration of metallic spheres in the shape of a cube. About 70\% of the time, it also infers correctly that the length of the side is 6, and arrives at $6^3=256$, the correct answer. A cube is probably the simplest 3d shape to reason about, and so it's not terribly surprising that ChatGPT can get this one correct. There is also perhaps some meta-knowledge the model possesses, in that magnetic spheres like the ones I use here are often sold in units of $256$ spheres, often displayed as cubes.
+	\\
+	
+	\begin{figure}[h!]
+		\centering
+		\includegraphics[width=150pt]{image2.jpg}
+		\label{fig:image2}
+		\caption{"Tube" of 30 Spheres}
+	\end{figure}
+	
+	Figure 2 shows what I would describe as a stack of 6 pentagons, though the stacks are tightly nested so that the spheres aren't in "columns". The answer is obviously $5 \times 6 = 30$, but ChatGPT has a hard time assessing the structure. It's complete response is:
+	\\
+	
+	\begin{lstlisting}
+From the image, we can observe that the structure is a vertical stack of spheres forming a 3D configuration with a consistent repeating pattern. To determine the total number of spheres:
+
+1. **Top layer:** There is 1 sphere.
+2. **Second layer:** There are 6 spheres arranged in a hexagonal pattern.
+3. **Third layer:** Again, there are 6 spheres in a similar hexagonal pattern.
+4. **Bottom layer:** There appears to be a single sphere at the very base.
+
+### Total number of spheres:
+- Top layer: 1
+- Second layer: 6
+- Third layer: 6
+- Bottom layer: 1
+
+**Total = 1 + 6 + 6 + 1 = 14 spheres.**
+
+Let me know if you'd like a different perspective or deeper analysis!
+	\end{lstlisting}
+	
+	It's correct in that it is a vertical stack with a consistent pattern, but then tries to break it down into layers and gets it completely wrong. Even with multiple samples of prompting with this image, it's consistently wrong, and often guesses 14 or 25 spheres.
+	\\
+	
+	\begin{figure}[h!]
+		\centering
+		\includegraphics[width=150pt]{image3.jpg}
+		\label{fig:image3}
+		\caption{Dodecahedron of 60 Spheres}
+	\end{figure}
+	
+	This last image of Figure 3 either depicts 12 pentagons arranged in a dodecahedron, or 20 triangles arranged in an icosahedron, depending on your perspective. In any case, the correct answer is $5 \times 12 = 3 \times 20 = 60$.
+	\\
+	
+	This is empirically the most difficult for ChatGPT to assess. Even when analyzing the structure, often its best guess for shape is either some "symmetrical arrangement of spheres forming a 3D shape" or some "sphere-like cluster made of smaller metallic spheres, closely packed together". Despite the prompt asking for a clear answer, most of the time it doesn't give a number, as if it just gives up and is only willing to help me count it myself. Occasionally it suggests that the spheres are packed in some sort of triangular or tetrahedral number sequence, and uses a formula to conclude with a wrong answer.
+	\\
+	
+	A sample response from ChatGPT for this one:
+	\begin{lstlisting}
+The structure in the image resembles a sphere built with a triangular or tetrahedral stacking pattern. In such configurations, the total number of spheres can be determined by summing the number of spheres in each layer.
+
+For a tetrahedral stacking, the number of spheres in each layer increases according to triangular numbers:  
+- Layer 1: 1 sphere  
+- Layer 2: 3 spheres  
+- Layer 3: 6 spheres  
+- Layer 4: 10 spheres, and so on.
+
+The total number of spheres in a tetrahedral arrangement of \( n \) layers is given by the formula:  
+\[
+T_n = \frac{n(n+1)(n+2)}{6}
+\]
+
+From the image, it seems to have 5 layers:
+- Layer 1: \( 1 \) sphere  
+- Layer 2: \( 3 \) spheres  
+- Layer 3: \( 6 \) spheres  
+- Layer 4: \( 10 \) spheres  
+- Layer 5: \( 15 \) spheres  
+
+Adding these:
+\[
+1 + 3 + 6 + 10 + 15 = 35
+\]
+
+Thus, there are **35 spheres** in total.
+	\end{lstlisting}
 	
 	
 	\section{Conclusion}
+	
+	ChatGPT failed the majority of the visual reasoning tasks I provided, excepting just the simple cube. My intuition for this consists of a few different thoughts. One is the limitations of image analysis and computer vision, particularly in an automated context like this where visual information can come from many bands and for many different sorts of tasks. Incorporating visual understanding for general-purpose instructional machines is a very large task.
+	\\
+	
+	The second intuition for the struggling of this problem type is that it requires both spatial and mathematical reasoning. Gauging depth in the image, identifying spheres in a small sense, identifying structures/patterns in the arrangement of those spheres in a larger sense, and using mathematical reasoning of the identified structure to calculate the total number of spheres is a difficult task for a model not specifically fine-tuned for it.
 	
 	
 \end{document}
